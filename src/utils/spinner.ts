@@ -1,20 +1,39 @@
-import { spinner } from '@clack/prompts';
+import { spinner as createSpinner } from '@clack/prompts';
 
 /**
- * 统一管理终端的加载动画
+ * Unified terminal spinner management
  */
-export function showSpinner(message: string) {
-  const s = spinner();
-  s.start(message);
+export function spinner() {
+  const s = createSpinner();
   
   return {
     /**
-     * 停止动画
-     * @param msg 停止时显示的提示文字
-     * @param _code 留着这个参数兼容 commit.ts 的调用，加下划线表示暂不使用，规避 TS 报错
+     * Start the loading animation
+     */
+    start(message: string) {
+      s.start(message);
+    },
+
+    /**
+     * Stop the animation
+     * @param msg Message to display upon stopping
+     * @param _code Compatibility parameter for existing calls
      */
     stop(msg: string, _code: number = 0) {
-      // clack 的 stop 只接收一个字符串参数，这里我们完美兼容它
+      s.stop(msg);
+    },
+
+    /**
+     * Stop with a success status
+     */
+    succeed(msg: string) {
+      s.stop(msg);
+    },
+
+    /**
+     * Stop with a failure status
+     */
+    fail(msg: string) {
       s.stop(msg);
     }
   };

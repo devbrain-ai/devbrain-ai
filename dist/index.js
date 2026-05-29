@@ -10,9 +10,17 @@ var __filename = fileURLToPath(import.meta.url);
 var __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, "../.env") });
 var program = new Command();
-program.name("brain").description(`${chalk.bold.magenta("\u{1F9E0} DevBrain AI")} - \u7EC8\u7AEF\u91CC\u7684\u5F00\u53D1\u8005\u8D85\u7EA7\u5927\u8111`).version("0.0.1");
-program.command("commit").description("\u8BFB\u53D6 git diff \u5E76\u81EA\u52A8\u751F\u6210\u4F18\u96C5\u7684 Commit Message").action(async () => {
-  const { commitCommand } = await import("./commit-SGJNCMR5.js");
+program.name("brain").description(`${chalk.bold.magenta("\u{1F9E0} DevBrain AI")} - The developer's superbrain in the terminal`).version("0.0.1");
+program.command("commit").description("Read git diff and automatically generate a professional commit message").action(async () => {
+  const { commitCommand } = await import("./commit-SZLRQO26.js");
   await commitCommand();
+});
+program.command("doctor").description("Diagnose terminal command failures and provide actionable fixes").argument("[args...]", 'Command and arguments to diagnose (e.g., "pnpm build")').action(async (args) => {
+  if (args.length === 0) {
+    console.error(chalk.red("Error: Please provide a command to diagnose."));
+    process.exit(1);
+  }
+  const { handleBrainDoctor } = await import("./doctor-J4UHNZB3.js");
+  await handleBrainDoctor(args);
 });
 program.parse();

@@ -1,6 +1,8 @@
+// src/commands/commit.ts
+
 import { select, isCancel } from '@clack/prompts';
 import { hasStagedChanges, getStagedDiff, execGitCommit } from '../utils/git.js';
-import { showSpinner } from '../utils/spinner.js';
+import { spinner } from '../utils/spinner.js';
 import { logger } from '../utils/logger.js';
 import { askAI } from '../services/ai.js';
 
@@ -15,14 +17,16 @@ export async function commitCommand(): Promise<void> {
   const diff = getStagedDiff();
   
   // 3. Invoke LLM orchestration layer with active spinner loading states
-  const spinner = showSpinner('DevBrain is deeply analyzing code diffs and formatting semantics...');
+  const s = spinner();
+  s.start('DevBrain is deeply analyzing code diffs and formatting semantics...');
+  
   let commitMessage = '';
   
   try {
     commitMessage = await askAI(diff);
-    spinner.stop('Commit message generated successfully!');
+    s.stop('Commit message generated successfully!');
   } catch (error: any) {
-    spinner.stop('Failed to communicate with the core LLM node.', 1);
+    s.stop('Failed to communicate with the core LLM node.', 1);
     logger.error(error?.message || error);
     return;
   }
@@ -49,7 +53,8 @@ export async function commitCommand(): Promise<void> {
 
   // 4. Execution stage: Commit verified changes permanently to local HEAD
   if (action === 'commit') {
-    const finalSpinner = showSpinner('Writing changes to local Git history...');
+    const finalSpinner = spinner();
+    finalSpinner.start('Writing changes to local Git history...');
     try {
       execGitCommit(commitMessage);
       finalSpinner.stop('🎉 Code committed successfully!');
