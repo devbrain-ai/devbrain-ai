@@ -12,15 +12,19 @@ dotenv.config({ path: resolve(__dirname, "../.env") });
 var program = new Command();
 program.name("brain").description(`${chalk.bold.magenta("\u{1F9E0} DevBrain AI")} - The developer's superbrain in the terminal`).version("0.0.1");
 program.command("commit").description("Read git diff and automatically generate a professional commit message").action(async () => {
-  const { commitCommand } = await import("./commit-BO7J5LBV.js");
+  const { commitCommand } = await import("./commit-T5SVWMTX.js");
   await commitCommand();
 });
-program.command("doctor").description("Diagnose terminal command failures and provide actionable fixes").argument("[args...]", 'Command and arguments to diagnose (e.g., "pnpm build")').action(async (args) => {
+program.command("doctor").description("Diagnose terminal command failures and provide actionable fixes").argument("[args...]", "Command and arguments to diagnose").action(async (args) => {
   if (args.length === 0) {
     console.error(chalk.red("Error: Please provide a command to diagnose."));
     process.exit(1);
   }
-  const { handleBrainDoctor } = await import("./doctor-L6BZ3BMQ.js");
+  const { handleBrainDoctor } = await import("./doctor-RELMUF4A.js");
   await handleBrainDoctor(args);
+});
+program.command("config").description("Configure your DevBrain AI preferences").option("-m, --model <model>", "Set the preferred AI model").action(async (options) => {
+  const { configCommand } = await import("./config-OC23F6S2.js");
+  await configCommand(options);
 });
 program.parse();
