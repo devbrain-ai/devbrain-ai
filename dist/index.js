@@ -20,7 +20,7 @@ program.command("doctor").description("Diagnose terminal command failures and pr
     console.error(chalk.red("Error: Please provide a command to diagnose."));
     process.exit(1);
   }
-  const { handleBrainDoctor } = await import("./doctor-FZ65FB32.js");
+  const { handleBrainDoctor } = await import("./doctor-JFLH4OMM.js");
   await handleBrainDoctor(args);
 });
 program.parse();

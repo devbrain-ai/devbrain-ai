@@ -5,6 +5,8 @@ import { generateDoctorPrompt } from '../services/doctorPrompts.js';
 import { logger } from '../utils/logger.js';
 import { spinner } from '../utils/spinner.js';
 
+const stripAnsi = (str: string) => str.replace(/\x1b\[[0-9;]*m/g, '');
+
 export async function handleBrainDoctor(
   commandArgs: string[],
   context: string = ''
@@ -29,7 +31,9 @@ export async function handleBrainDoctor(
     const prompt = generateDoctorPrompt(JSON.stringify({ command, errorOutput: stderr }));
     const diagnosis = await askAI(prompt);
 
-    logger.info(`\n--- 🧠 Brain Doctor Diagnosis ---\n${diagnosis}\n`);
+   logger.info('\n--- 🧠 Brain Doctor Diagnosis ---');
+    logger.info(stripAnsi(diagnosis));
+    logger.info('\n');
 
   // Replace your fixMatches mapping logic in doctor.ts:
 
