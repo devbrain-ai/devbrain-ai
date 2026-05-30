@@ -20,16 +20,23 @@ export async function commitCommand(): Promise<void> {
   const s = spinner();
   s.start('DevBrain is deeply analyzing code diffs and formatting semantics...');
   
-  let commitMessage = '';
+  let rawMessage = '';
   
   try {
-    commitMessage = await askAI(diff);
+    rawMessage = await askAI(diff);
     s.stop('Commit message generated successfully!');
   } catch (error: any) {
     s.stop('Failed to communicate with the core LLM node.', 1);
     logger.error(error?.message || error);
     return;
   }
+
+  // Data Cleaning: Remove potential Markdown code block artifacts 
+  // and trim whitespace to ensure Git compatibility
+  const commitMessage = rawMessage
+    .replace(/```(text|markdown)?/g, '')
+    .replace(/`/g, '')
+    .trim();
 
   // 🥊 Terminal UX loop: Render generated context and hook option selectors
   console.log('\n----------------------------------------');
@@ -56,7 +63,8 @@ export async function commitCommand(): Promise<void> {
     const finalSpinner = spinner();
     finalSpinner.start('Writing changes to local Git history...');
     try {
-execGitCommit("Test commit from brain");
+      // Pass the cleaned, dynamic commit message to the git utility
+      execGitCommit(commitMessage);
       finalSpinner.stop('🎉 Code committed successfully!');
     } catch (error: any) {
       finalSpinner.stop('Commit execution pipeline failed.', 1);
