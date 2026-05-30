@@ -27,8 +27,7 @@ export function getStagedDiff(): string {
  * 安全执行本地 Git Commit
  */
 export function execGitCommit(message: string): void {
-  // spawnSync does not invoke a shell, so no manual escaping is needed.
-  // It treats the message as a literal argument.
+console.log(`[DEBUG] Attempting to commit with message: "${message}"`);
   const result = spawnSync('git', ['commit', '-m', message], { stdio: 'inherit' });
 
   if (result.status !== 0) {

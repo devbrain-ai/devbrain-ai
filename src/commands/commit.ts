@@ -56,7 +56,7 @@ export async function commitCommand(): Promise<void> {
     const finalSpinner = spinner();
     finalSpinner.start('Writing changes to local Git history...');
     try {
-      execGitCommit(commitMessage);
+execGitCommit("Test commit from brain");
       finalSpinner.stop('🎉 Code committed successfully!');
     } catch (error: any) {
       finalSpinner.stop('Commit execution pipeline failed.', 1);

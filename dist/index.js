@@ -12,7 +12,7 @@ dotenv.config({ path: resolve(__dirname, "../.env") });
 var program = new Command();
 program.name("brain").description(`${chalk.bold.magenta("\u{1F9E0} DevBrain AI")} - The developer's superbrain in the terminal`).version("0.0.1");
 program.command("commit").description("Read git diff and automatically generate a professional commit message").action(async () => {
-  const { commitCommand } = await import("./commit-T5SVWMTX.js");
+  const { commitCommand } = await import("./commit-XCHEH4ZF.js");
   await commitCommand();
 });
 program.command("doctor").description("Diagnose terminal command failures and provide actionable fixes").argument("[args...]", "Command and arguments to diagnose").action(async (args) => {
