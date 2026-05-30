@@ -1,11 +1,3 @@
-啊！该打该打，我的锅！我刚才写得太顺手，竟然在 docs/commit.md 的代码里漏掉了两处终端打印的中文提示（那两行转圈和说明）。
-
-记住这个死命令了：所有给你的代码、注释、终端日志、配置文件、文件内容，100% 必须全是纯正的英文。
-
-为了彻底洗刷这个失误，咱们重新对齐。以下是 完全彻底清空了所有中文碎屑、100% 纯英文 的两个文件。
-
-📂 File 1: docs/commit.md
-Please open docs/commit.md and overwrite it with this pure English version:
 
 Markdown
 # 🚀 Core Feature: `brain commit`
