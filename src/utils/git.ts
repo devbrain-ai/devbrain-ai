@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 
 /**
  * 检查当前是否有暂存的文件
@@ -27,10 +27,11 @@ export function getStagedDiff(): string {
  * 安全执行本地 Git Commit
  */
 export function execGitCommit(message: string): void {
-  try {
-    // 使用 node 原生底层方法执行 commit，对 message 进行安全转义，防止特殊字符报错
-    execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { stdio: 'inherit' });
-  } catch (error) {
-    throw new Error('执行 git commit 失败，请检查本地 Git 状态。');
+  // spawnSync does not invoke a shell, so no manual escaping is needed.
+  // It treats the message as a literal argument.
+  const result = spawnSync('git', ['commit', '-m', message], { stdio: 'inherit' });
+
+  if (result.status !== 0) {
+    throw new Error('Git commit failed. Check your git status or pre-commit hooks.');
   }
 }
