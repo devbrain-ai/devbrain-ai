@@ -23,9 +23,6 @@ export class OpenAIProvider {
     temperature: 0.2,
   };
 
-  console.log(`[DEBUG] Requesting model: ${this.model}`);
-  console.log(`[DEBUG] Target URL: ${baseUrl}/chat/completions`);
-
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
