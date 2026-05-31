@@ -29,4 +29,4 @@ export async function askAI(payload: string | TaskPayload): Promise<string> {
   }
 
   return response.trim();
-}
+}// refactor
