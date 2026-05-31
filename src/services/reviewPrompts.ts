@@ -46,7 +46,8 @@ Fix: <One sentence describing the recommended solution.>
 1. Output ONLY the structured blocks above. No summaries, no preamble, no closing remarks.
 2. If the diff is large, prioritize CRITICAL and MEDIUM issues only.
 3. If no issues are found, output exactly one line: ✅ LGTM — No issues found.
-4. Do not repeat issues that are the same root cause in different locations.
+4. If ANY issues are found, do NOT output the LGTM line under any circumstances.
+5. Do not repeat issues that are the same root cause in different locations.
 
 ${contextBlock}[GIT DIFF]:
 ${diff}`;

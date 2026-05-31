@@ -64,25 +64,42 @@ export async function handleBrainDoctor(
 
     const options: { label: string; value: string }[] = [];
 
-    fixMatches.forEach((match) => {
-      const content = match.replace(/```bash\n|\n```/g, '').trim();
-      const commands = content.split('\n').filter(line => line.trim() !== '' && !line.startsWith('#'));
-      
-      commands.forEach((cmd) => {
-        const cleanCmd = cmd.trim();
-        if (cleanCmd) {
-          options.push({ label: `Run: ${cleanCmd}`, value: cleanCmd });
-        }
-      });
-    });
+fixMatches.forEach((match) => {
+  const content = match.replace(/```bash\n|\n```/g, '').trim();
+  const firstCmd = content
+    .split('\n')
+    .map(l => l.trim())
+    .find(l => l.length > 0 && !l.startsWith('#') && !/^\d+\./.test(l));
 
-    // Provide default options if AI failed to return any valid commands
-    if (options.length === 0) {
-      options.push({ label: '⚠️ No commands found. Ask for a better fix?', value: 'explain' });
-    }
+  if (firstCmd) {
+    const displayCmd = firstCmd.length > 40 ? firstCmd.substring(0, 37) + '...' : firstCmd;
+    options.push({ label: `Run: ${displayCmd}`, value: firstCmd });
+  }
+});
 
-    options.push({ label: '❌ Explain / Ask for different fix', value: 'explain' });
-    options.push({ label: 'Exit', value: 'exit' });
+// Fallback: only runs if no commands were found in code blocks
+if (options.length === 0) {
+  const lines = diagnosis.split('\n');
+  const potentialCmds = lines.filter(line => {
+    const t = line.trim();
+    return /^(sudo|mkdir|rm|chmod|chown|git|npm|yarn|docker)\s+\S+/.test(t)
+      && !/^\d+\./.test(t)
+      && !/^```/.test(t);
+  });
+  potentialCmds.forEach(cmd => {
+    const cleanCmd = cmd.trim();
+    const displayCmd = cleanCmd.length > 40 ? cleanCmd.substring(0, 37) + '...' : cleanCmd;
+    options.push({ label: `Run: ${displayCmd}`, value: cleanCmd });
+  });
+}
+
+// Provide default options if AI failed to return any valid commands
+if (options.length === 0) {
+  options.push({ label: '⚠️ No commands found. Ask for a better fix?', value: 'explain' });
+}
+
+options.push({ label: '❌ Explain / Ask for different fix', value: 'explain' });
+options.push({ label: 'Exit', value: 'exit' });
 
     const action = await select({
       message: 'How would you like to proceed?',
@@ -95,13 +112,27 @@ export async function handleBrainDoctor(
       return handleBrainDoctor(commandArgs, `Previous attempt failed with: ${stderr}`);
     }
 
-    const fixSpinner = spinner();
-    fixSpinner.start(`Executing: ${action}...`);
-    try {
-      execSync(action, { stdio: 'inherit' });
-      fixSpinner.succeed('Fix applied successfully!');
-    } catch (e: any) {
-      fixSpinner.fail('Failed to apply fix.');
+   // Block dangerous commands
+const dangerousPatterns = /^(rm\s+-rf|mkfs|dd\s+if=|chmod\s+777\s+\/|sudo\s+rm)/i;
+if (dangerousPatterns.test(action.trim())) {
+  logger.warn('⚠️  Blocked: this command was flagged as potentially destructive. Review it manually before running.');
+  return;
+}
+
+// Warn about potentially blocking commands
+const blockingPatterns = /^(nano|vim|vi|less|more|top|htop|tail\s+-f|watch)\s*/i;
+if (blockingPatterns.test(action.trim())) {
+  logger.warn('⚠️  This command may start an interactive or long-running process. Run it manually in your terminal.');
+  return;
+}
+
+const fixSpinner = spinner();
+fixSpinner.start(`Executing: ${action}...`);
+try {
+  execSync(action, { stdio: 'inherit' });
+  fixSpinner.succeed('Fix applied successfully!');
+} catch (e: any) {
+  fixSpinner.fail('Failed to apply fix.');
       const retry = await select({
         message: 'Fix failed. Would you like to ask for a different approach?',
         options: [
