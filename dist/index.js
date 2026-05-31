@@ -12,7 +12,7 @@ dotenv.config({ path: resolve(__dirname, "../.env") });
 var program = new Command();
 program.name("brain").description(`${chalk.bold.magenta("\u{1F9E0} DevBrain AI")} - The developer's superbrain in the terminal`).version("0.0.1");
 program.command("commit").description("Read git diff and automatically generate a professional commit message").action(async () => {
-  const { commitCommand } = await import("./commit-47ODRMDD.js");
+  const { commitCommand } = await import("./commit-BC7FBXYS.js");
   await commitCommand();
 });
 program.command("doctor").description("Diagnose terminal command failures and provide actionable fixes").argument("[args...]", "Command and arguments to diagnose").action(async (args) => {
@@ -20,11 +20,15 @@ program.command("doctor").description("Diagnose terminal command failures and pr
     console.error(chalk.red("Error: Please provide a command to diagnose."));
     process.exit(1);
   }
-  const { handleBrainDoctor } = await import("./doctor-RELMUF4A.js");
+  const { handleBrainDoctor } = await import("./doctor-CPBOM2XJ.js");
   await handleBrainDoctor(args);
 });
 program.command("config").description("Configure your DevBrain AI preferences").option("-m, --model <model>", "Set the preferred AI model").action(async (options) => {
-  const { configCommand } = await import("./config-OC23F6S2.js");
+  const { configCommand } = await import("./config-G7LGHYA5.js");
   await configCommand(options);
+});
+program.command("review [file]").description("AI-powered code review for your changes").option("--branch <name>", "Review diff between current branch and <name>").option("--last-commit", "Review the most recent commit").option("--focus <area>", "Focus: all | security | performance | readability  (default: all)").option("--context <text>", "Extra context about this change to guide the AI").action(async (file, options) => {
+  const { reviewCommand } = await import("./review-3HOR7EHQ.js");
+  await reviewCommand(file, options);
 });
 program.parse();

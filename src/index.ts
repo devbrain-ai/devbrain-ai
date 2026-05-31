@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// src/index.ts
 
 import { Command } from 'commander';
 import chalk from 'chalk';
@@ -17,7 +18,7 @@ program
   .description(`${chalk.bold.magenta('🧠 DevBrain AI')} - The developer's superbrain in the terminal`)
   .version('0.0.1');
 
-// 1. Existing commit command
+// ── 1. commit ─────────────────────────────────────────────────────────────────
 program
   .command('commit')
   .description('Read git diff and automatically generate a professional commit message')
@@ -26,7 +27,7 @@ program
     await commitCommand();
   });
 
-// 2. Existing doctor command
+// ── 2. doctor ─────────────────────────────────────────────────────────────────
 program
   .command('doctor')
   .description('Diagnose terminal command failures and provide actionable fixes')
@@ -40,15 +41,27 @@ program
     await handleBrainDoctor(args);
   });
 
-// 3. NEW: Add your config command here
+// ── 3. config ─────────────────────────────────────────────────────────────────
 program
   .command('config')
   .description('Configure your DevBrain AI preferences')
   .option('-m, --model <model>', 'Set the preferred AI model')
   .action(async (options) => {
     const { configCommand } = await import('./commands/config.js');
-    // We pass options (like --model) directly to your command handler
     await configCommand(options);
+  });
+
+// ── 4. review ─────────────────────────────────────────────────────────────────
+program
+  .command('review [file]')
+  .description('AI-powered code review for your changes')
+  .option('--branch <name>',  'Review diff between current branch and <name>')
+  .option('--last-commit',    'Review the most recent commit')
+  .option('--focus <area>',   'Focus: all | security | performance | readability  (default: all)')
+  .option('--context <text>', 'Extra context about this change to guide the AI')
+  .action(async (file, options) => {
+    const { reviewCommand } = await import('./commands/review.js');
+    await reviewCommand(file, options);
   });
 
 program.parse();
