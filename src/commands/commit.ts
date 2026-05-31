@@ -31,12 +31,14 @@ export async function commitCommand(): Promise<void> {
     return;
   }
 
-  // Data Cleaning: Remove potential Markdown code block artifacts 
-  // and trim whitespace to ensure Git compatibility
-  const commitMessage = rawMessage
-    .replace(/```(text|markdown)?/g, '')
-    .replace(/`/g, '')
-    .trim();
+const lines = rawMessage.split('\n');
+const conventionalLine = lines.find(line =>
+  /^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+/.test(line.trim())
+);
+const commitMessage = (conventionalLine ?? lines[0])
+  .replace(/```(text|markdown)?/g, '')
+  .replace(/`/g, '')
+  .trim();
 
   // 🥊 Terminal UX loop: Render generated context and hook option selectors
   console.log('\n----------------------------------------');

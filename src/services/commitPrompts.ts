@@ -1,23 +1,22 @@
+// src/services/commitPrompts.ts
+
 /**
- * Generates a system prompt tailored for creating Conventional Commits based on git diff.
+ * System prompt for commit message generation.
+ * Injected as the 'system' role for better instruction following.
  */
-export function generateCommitPrompt(diff: string): string {
-  return `You are an expert software engineer and systems architect. Based on the following Git Diff code changes, generate a single-line commit message that strictly complies with the Conventional Commits specification.
+export function getCommitSystemPrompt(): string {
+  return `You are an expert software engineer that generates git commit messages.
+Output ONLY a single line in Conventional Commits format. No explanations. No markdown. No extra text.
+FORMAT: <type>: <description>
+ALLOWED TYPES: feat, fix, docs, style, refactor, test, chore
+EXAMPLE: feat: add user authentication middleware`;
+}
 
-[STRICT RULES]:
-1. The format must be exactly: <type>: <description>
-2. The <type> must be chosen exclusively from the following list:
-   - feat: A new feature
-   - fix: A bug fix
-   - docs: Documentation only changes
-   - style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.)
-   - refactor: A code change that neither fixes a bug nor adds a feature
-   - test: Adding missing tests or correcting existing tests
-   - chore: Changes to the build process or auxiliary tools and libraries
-3. The <description> should be concise and written in plain, professional English (e.g., "add logger middleware", "fix connection timeout").
-4. Under any circumstances, DO NOT include any markdown code blocks, additional explanations, notes, or newlines. Output ONLY the single raw line of text.
+/**
+ * User prompt containing the diff to be analyzed.
+ */
+export function getCommitUserPrompt(diff: string): string {
+  return `Generate a single-line commit message for the following git diff:
 
-[GIT DIFF]:
-${diff}
-`;
+${diff}`;
 }

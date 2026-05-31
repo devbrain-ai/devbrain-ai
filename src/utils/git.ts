@@ -1,6 +1,7 @@
 import { execSync, spawnSync } from 'node:child_process';
+
 /**
- * 检查当前是否有暂存的文件
+ * Check whether there are any staged files in the current repository.
  */
 export function hasStagedChanges(): boolean {
   try {
@@ -12,7 +13,7 @@ export function hasStagedChanges(): boolean {
 }
 
 /**
- * 获取当前的 Git Diff
+ * Return the staged git diff as a string.
  */
 export function getStagedDiff(): string {
   try {
@@ -23,10 +24,9 @@ export function getStagedDiff(): string {
 }
 
 /**
- * 安全执行本地 Git Commit
+ * Safely execute a local git commit with the given message.
  */
 export function execGitCommit(message: string): void {
-console.log(`[DEBUG] Attempting to commit with message: "${message}"`);
   const result = spawnSync('git', ['commit', '-m', message], { stdio: 'inherit' });
 
   if (result.status !== 0) {
@@ -34,31 +34,34 @@ console.log(`[DEBUG] Attempting to commit with message: "${message}"`);
   }
 }
 
-// ─── 追加到 src/utils/git.ts 的函数 ──────────────────────────────────────────
-// 你的 git.ts 里已有 hasStagedChanges / getStagedDiff / execGitCommit
-// 把以下三个函数追加进去即可
-
-
-
-/** Review 最近一次 commit 的改动 */
+/**
+ * Return the diff introduced by the most recent commit.
+ */
 export function getLastCommitDiff(): string {
   return execSync('git diff HEAD~1 HEAD', { encoding: 'utf-8' });
 }
 
-/** Review 当前分支与目标分支的 diff */
+/**
+ * Return the diff between the current HEAD and the specified branch.
+ * The branch name is sanitized to prevent command injection.
+ */
 export function getBranchDiff(branch: string): string {
-const sanitizedBranch = branch.replace(/[^a-zA-Z0-9/_.\-]/g, '');
-return execSync(`git diff ${sanitizedBranch}...HEAD`, { encoding: 'utf-8' });}
+  const sanitizedBranch = branch.replace(/[^a-zA-Z0-9/_.\-]/g, '');
+  return execSync(`git diff ${sanitizedBranch}...HEAD`, { encoding: 'utf-8' });
+}
 
-/** Review 单个文件的 staged 改动（fallback 到 working tree diff） */
+/**
+ * Return the diff for a specific file.
+ * Tries staged changes first, falls back to unstaged working tree diff.
+ * The file path is sanitized to prevent command injection.
+ */
 export function getFileDiff(file: string): string {
+  const sanitizedFile = file.replace(/[^\w./\-]/g, '');
   try {
-    // 优先读 staged diff
-    const staged = execSync(`git diff --cached -- ${file}`, { encoding: 'utf-8' });
+    const staged = execSync(`git diff --cached -- ${sanitizedFile}`, { encoding: 'utf-8' });
     if (staged.trim()) return staged;
-    // fallback: unstaged
-    return execSync(`git diff -- ${file}`, { encoding: 'utf-8' });
+    return execSync(`git diff -- ${sanitizedFile}`, { encoding: 'utf-8' });
   } catch {
-    throw new Error(`Cannot get diff for file: ${file}`);
+    throw new Error(`Cannot get diff for file: ${sanitizedFile}`);
   }
 }
