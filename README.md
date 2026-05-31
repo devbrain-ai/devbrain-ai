@@ -4,6 +4,8 @@
 
 **The AI-powered developer terminal. No dashboards. No subscriptions. Just your terminal.**
 
+[![npm version](https://img.shields.io/npm/v/devbrain-ai)](https://www.npmjs.com/package/devbrain-ai)
+[![npm downloads](https://img.shields.io/npm/dm/devbrain-ai)](https://www.npmjs.com/package/devbrain-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-green)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
@@ -26,6 +28,26 @@ It automates the repetitive, diagnoses the painful, and reviews the risky — al
 | [`brain commit`](./docs/commit.md) | Analyzes your staged diff and generates a Conventional Commit message | 🟢 Stable |
 | [`brain doctor`](./docs/doctor.md) | Diagnoses shell errors and proposes executable fixes in a recursive loop | 🟢 Stable |
 | [`brain review`](./docs/review.md) | AI code review with severity triage on staged changes, branches, or files | 🟢 Stable |
+
+---
+
+## 🎬 Demo
+
+### `brain commit` — Generate commit messages from your staged diff
+
+![brain commit demo](./docs/demo-commit.gif)
+
+---
+
+### `brain review` — AI code review with severity triage
+
+![brain review demo](./docs/demo-review.gif)
+
+---
+
+### `brain doctor` — Diagnose and fix terminal errors
+
+![brain doctor demo](./docs/demo-doctor.gif)
 
 ---
 
@@ -53,29 +75,17 @@ brain config --model "deepseek/deepseek-r1:free"
 ### Prerequisites
 
 - Node.js 20+
-- pnpm
 - An [OpenRouter API key](https://openrouter.ai/keys) (free tier available)
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/devbrain-ai.git
-cd devbrain-ai
-
-# 2. Install dependencies
-pnpm install
-
-# 3. Build the CLI
-pnpm build
-
-# 4. Link globally
-npm link
+npm install -g devbrain-ai
 ```
 
 ### Configuration
 
-Create a `.env` file in the project root:
+Create a `.env` file in your project root:
 
 ```env
 OPENAI_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxx
@@ -109,7 +119,7 @@ brain review
 # Review a specific file
 brain review src/auth/middleware.ts
 
-# Review against a branch
+# Review against a branch with security focus
 brain review --branch main --focus security
 ```
 
@@ -149,7 +159,7 @@ The provider layer is intentionally thin. Adding support for a new LLM provider 
 
 ## 📄 License
 
-MIT © 2026 [Xiaozhi (Steven) Xing](https://github.com/your-username)
+MIT © 2026 Xiaozhi (Steven) Xing
 
 ---
 
