@@ -12,7 +12,7 @@ dotenv.config({ path: resolve(__dirname, "../.env") });
 var program = new Command();
 program.name("brain").description(`${chalk.bold.magenta("\u{1F9E0} DevBrain AI")} - The developer's superbrain in the terminal`).version("0.0.1");
 program.command("commit").description("Read git diff and automatically generate a professional commit message").action(async () => {
-  const { commitCommand } = await import("./commit-BC7FBXYS.js");
+  const { commitCommand } = await import("./commit-WVGLRTEK.js");
   await commitCommand();
 });
 program.command("doctor").description("Diagnose terminal command failures and provide actionable fixes").argument("[args...]", "Command and arguments to diagnose").action(async (args) => {
@@ -20,7 +20,7 @@ program.command("doctor").description("Diagnose terminal command failures and pr
     console.error(chalk.red("Error: Please provide a command to diagnose."));
     process.exit(1);
   }
-  const { handleBrainDoctor } = await import("./doctor-CPBOM2XJ.js");
+  const { handleBrainDoctor } = await import("./doctor-OCWPPJ3U.js");
   await handleBrainDoctor(args);
 });
 program.command("config").description("Configure your DevBrain AI preferences").option("-m, --model <model>", "Set the preferred AI model").action(async (options) => {
@@ -28,7 +28,7 @@ program.command("config").description("Configure your DevBrain AI preferences").
   await configCommand(options);
 });
 program.command("review [file]").description("AI-powered code review for your changes").option("--branch <name>", "Review diff between current branch and <name>").option("--last-commit", "Review the most recent commit").option("--focus <area>", "Focus: all | security | performance | readability  (default: all)").option("--context <text>", "Extra context about this change to guide the AI").action(async (file, options) => {
-  const { reviewCommand } = await import("./review-3HOR7EHQ.js");
+  const { reviewCommand } = await import("./review-JG5HLGJG.js");
   await reviewCommand(file, options);
 });
 program.parse();

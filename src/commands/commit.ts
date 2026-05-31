@@ -23,7 +23,7 @@ export async function commitCommand(): Promise<void> {
   let rawMessage = '';
   
   try {
-    rawMessage = await askAI(diff);
+rawMessage = await askAI({ diff });
     s.stop('Commit message generated successfully!');
   } catch (error: any) {
     s.stop('Failed to communicate with the core LLM node.', 1);
@@ -73,4 +73,4 @@ const commitMessage = (conventionalLine ?? lines[0])
       logger.error(error.message);
     }
   }
-}
+}// test final
