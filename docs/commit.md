@@ -1,90 +1,110 @@
+# `brain commit`
 
-Markdown
-# 🚀 Core Feature: `brain commit`
-
-Deeply analyzes your local Git staged changes (`git diff --cached`) and prompts the AI to generate structural commit messages that strictly adhere to the **Conventional Commits** specification. Provides a slick interactive terminal menu to execute the commit natively.
+Analyzes your staged Git diff and generates a single-line commit message that strictly conforms to the [Conventional Commits](https://www.conventionalcommits.org) specification. Presents an interactive terminal menu to confirm or cancel before writing to Git history.
 
 ---
 
-## 1. Architecture Highlights
-* **Staged Defenses (`utils/git.ts`)**: Natively hooks into Node's child process pipelines to extract raw metadata from `git diff --cached`. If no files are staged, it gracefully intercepts execution to prevent redundant LLM invocations or shell crashes.
-* **Flexible Union Type Layer (`services/ai.ts`)**: Accepts a robust `string | TaskPayload` input structure. This abstracts away the underlying data payload, laying down the structural foundation for future batch-processing or code review tasks.
-* **Resilient Dynamic Routing (`providers/*`)**: Tailored to interface with OpenRouter's smart global gateway using `openrouter/free`. It dynamically balances incoming traffic across the fastest, most reliable free coding models (such as Qwen-Coder and Gemini-Flash aggregates), **completely resolving the 429 Rate Limit issues caused by upstream traffic spikes**.
-* **Immersive UX (`@clack/prompts`)**: Integrates stream-lined animations, custom loading indicators (`⠋`), and a beautiful interactive keyboard menu selector for a clean, deterministic terminal workflow.
+## How It Works
+
+```
+git diff --cached
+      │
+      ▼
+ Prompt Engine
+(system + user split)
+      │
+      ▼
+  OpenRouter LLM
+      │
+      ▼
+ Output Extraction
+(regex match → fallback)
+      │
+      ▼
+ Interactive Confirm
+      │
+      ▼
+  git commit -m
+```
+
+1. **Staged diff extraction** — Reads `git diff --cached` via Node's `child_process`. Aborts immediately if nothing is staged.
+2. **Prompt construction** — Splits intent into a `system` role (format rules) and a `user` role (raw diff). This separation significantly improves instruction-following on smaller models.
+3. **Output extraction** — Uses a regex pass to find the first line matching `<type>: <description>`. Falls back to the first line of output if no match is found.
+4. **Interactive confirmation** — Renders a `@clack/prompts` selector. The commit only executes on explicit confirmation.
 
 ---
 
-## 2. Workflow Usage
-
-Navigate to **any** local Git repository on your machine, perform modifications, and run:
+## Usage
 
 ```bash
-# 1. Stage your incremental changes
+# Stage your changes, then invoke
 git add .
-
-# 2. Invoke the brain
 brain commit
-Terminal Experience Flow:
-Loading spinner displays: ⠋ DevBrain is deeply analyzing code diffs and formatting semantics...
+```
 
-Outputs a clean, well-scoped commit message line (e.g., feat: add database middleware or fix: file mode issue).
+**Terminal flow:**
 
-Renders an interactive prompt selector:
+```
+⠋ DevBrain is deeply analyzing code diffs and formatting semantics...
+✔ Commit message generated successfully!
 
-Plaintext
-◇ How would you like to handle this commit message?
+----------------------------------------
+feat: add AI-powered code review command
+----------------------------------------
+
+◆ How would you like to handle this commit message?
 │  ✅ Execute Git Commit
 │  ❌ Cancel
-Hit Enter to safely log the changes into your local Git history, showing: ◇ 🎉 Code committed successfully!
-
-⚠️ Caveats & Edge Cases
-Metadata Fallbacks: When adding empty files or raw configurations without concrete logical lines (e.g., running touch test.txt), the LLM intelligently detects filesystem adjustments and might fall back to fix: Fixed file mode issue or test: add test file. This is an intended contextual behavior.
-
-Pre-Staging Mandatory: If you forget to run git add, the tool will proactively abort with a warning. Ensure changes are present in your index before invocation.
-
+```
 
 ---
 
-### 📂 File 2: Root `README.md`
-Please open your root `README.md` and overwrite it with this **pure English** version:
+## Supported Commit Types
 
-```markdown
-# ⚡️ DevBrain AI (devbrain-ai)
-
-> A lightweight, zero-dependency AI-powered developer toolbox (CLI) built for independent developers. Architected with Node.js, TypeScript, tsup, and deep LLM pipeline integration.
-
-`devbrain` is a highly cohesive, non-intrusive CLI toolbox designed to seamlessly traverse any Git repository across your machine, delivering instant AI-driven productivity right inside your terminal.
-
----
-
-## 🛠 Toolbox Panorama
-
-We are iteratively expanding the toolbox with highly practical, production-ready developer tools.
-
-| Command | Status | Documentation Docs |
-| :--- | :--- | :--- |
-| `brain commit` | 🟢 100% Production Ready | [View Full Specs & Workflow](./docs/commit.md) |
-| `brain review` | ⏳ Planned | [Specs Coming Soon](#) |
-| `brain readme` | ⏳ Planned | [Specs Coming Soon](#) |
+| Type | When to use |
+| :--- | :--- |
+| `feat` | A new feature |
+| `fix` | A bug fix |
+| `docs` | Documentation changes only |
+| `style` | Formatting, whitespace — no logic change |
+| `refactor` | Code restructure without feature or fix |
+| `test` | Adding or correcting tests |
+| `chore` | Build process, tooling, dependencies |
 
 ---
 
-## 📦 Global Setup & Installation
+## Edge Cases
 
-### 1. Installation & Global Linking
-Compile the source files and double-link the CLI binary globally from your project root:
+**Empty or trivial diffs** (e.g., `touch file.txt`) — The LLM may produce a generic message like `chore: add empty test file`. This is expected behavior; the diff contains no semantic signal.
+
+**No staged changes** — The command aborts with a warning before any LLM call is made:
+```
+⚠️ No staged changes detected. Please run "git add ." first.
+```
+
+**Model non-compliance** — If the model ignores formatting instructions, the extraction layer falls back to the raw first line. Switching to a stronger model via `brain config --model` resolves this.
+
+---
+
+## Model Recommendations
+
+| Use Case | Recommended Model |
+| :--- | :--- |
+| Free, everyday use | `qwen/qwen3-8b` |
+| High accuracy | `openai/gpt-4o-mini` |
+| Offline / self-hosted | Any OpenRouter-compatible local endpoint |
+
 ```bash
-pnpm run build
-npm link
-2. Environment Setup (.env)
-Configure a .env file in the root directory of your devbrain-ai project. The application utilizes a memory-safe process injection flow to bridge securely with OpenRouter:
+brain config --model "openai/gpt-4o-mini"
+```
 
-Plaintext
-OPENAI_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxx
-OPENAI_BASE_URL=[https://openrouter.ai/api/v1](https://openrouter.ai/api/v1)
-DEVBRAIN_MODEL=openrouter/free
-DEVBRAIN_PROVIDER=openai
-⚠️ Critical Security Caveat
-Keep .env Restricted: Never commit your .env file to remote version control. Ensure it is explicitly isolated inside your root .gitignore.
+---
 
-© 2026 Xiaozhi (Steven) Xing. Powered by TypeScript & OpenRouter.
+## Source
+
+```
+src/commands/commit.ts       # Command handler and UX loop
+src/services/commitPrompts.ts  # System + user prompt construction
+src/services/ai.ts           # LLM orchestration layer
+src/utils/git.ts             # git diff --cached extraction
+```

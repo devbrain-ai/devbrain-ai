@@ -1,38 +1,105 @@
-🩺 Core Feature: brain doctor
-brain doctor is a high-availability, recursive diagnostic agent built to autonomously identify, analyze, and remediate shell execution errors. It integrates a Human-in-the-Loop (HITL) feedback mechanism to ensure that if an initial fix is insufficient, the system self-corrects and iterates toward a valid solution.
+# `brain doctor`
 
-1. Architecture Highlights
-Recursive Diagnostic Loop (doctor.ts): Unlike standard one-shot AI prompts, brain doctor utilizes a recursive recursion pattern. If a suggested fix fails, the agent captures the stderr and the previous context, allowing the LLM to perform "Chain-of-Thought" correction until the environment is stabilized.
+A recursive diagnostic agent that intercepts shell execution failures, consults an LLM for root cause analysis, and presents executable fix options in an interactive loop. If the first fix fails, the agent re-enters with the accumulated error context — iterating until the environment is stabilized or you choose to exit.
 
-Intelligent Fallback Engine: Uses a resilient parsing layer that bridges the gap between structured Markdown (bash code blocks) and unstructured terminal output. If the AI skips code-block formatting, the tool's heuristic engine extracts shell commands directly from the response.
+---
 
-State-Aware Spinner Logic (@clack/prompts): Manages the CLI state lifecycle with granular precision. It gracefully transitions between diagnostic states—analyzing, thinking, and executing—while suppressing "failure noise" during retry loops to maintain a clean terminal environment.
+## How It Works
 
-Context Injection: Dynamically compiles historical error logs into the prompt payload. This ensures the AI understands the sequence of failures, effectively turning a terminal error into a structured debugging dialogue.
+```
+brain doctor "<command>"
+        │
+        ▼
+  spawn() + stderr capture
+        │
+     exit code?
+        │
+   ┌────┴────┐
+  = 0       ≠ 0
+   │         │
+ success   LLM diagnosis
+             │
+             ▼
+      Interactive fix menu
+             │
+      ┌──────┴──────┐
+   run fix       explain / retry
+      │               │
+   execSync      recursive call
+                 (with error context)
+```
 
-2. Workflow Usage
-Invoke the doctor immediately when an operation fails, or use it to wrap brittle shell commands:
+1. **Command execution** — Spawns the target command via `child_process.spawn`. Captures `stderr` in real time.
+2. **LLM diagnosis** — On non-zero exit, sends the command and error output to the LLM for root cause analysis.
+3. **Fix extraction** — Parses `bash` code blocks from the LLM response. Falls back to heuristic line matching if the model skips Markdown formatting.
+4. **Interactive loop** — Presents runnable fixes as a `@clack/prompts` selector. Executes the selected command via `execSync`.
+5. **Recursive retry** — If the fix fails or you request an alternative, the agent re-invokes itself with the full failure history injected into the next prompt.
 
-Bash
-# Execute a command through the Brain Doctor wrapper
-brain doctor <command>
-Interactive Decision Flow
-Diagnostic Phase: The system intercepts stderr and consults the AI for a Root Cause Analysis (RCA).
+---
 
-Strategic Selection: The tool renders an interactive menu containing actionable fix options parsed from the AI’s recommendation.
+## Usage
 
-Recursive Explanation: If the proposed fixes are ambiguous, select ❌ Explain / Ask for different fix. This forces the AI to enter a "Deep Analysis" mode, leveraging previous failure logs to generate a more comprehensive, step-by-step resolution.
+```bash
+# Wrap any failing command
+brain doctor "npm install --legacy-peer-deps"
+brain doctor "git push origin main"
+brain doctor "docker build -t myapp ."
+```
 
-⚠️ Important Considerations
-Execution Permissions: Brain Doctor may suggest privileged operations (e.g., sudo). Always review the suggested commands in the terminal buffer before confirming execution.
+**Terminal flow:**
 
-Probabilistic Output: As an LLM-driven tool, the depth of technical analysis may vary based on temperature settings. Utilize the Explain functionality to force higher-resolution reasoning when simple fixes fail.
+```
+⠋ Analyzing: npm install --legacy-peer-deps...
+✖ Command failed. Consulting Brain Doctor...
 
-Environment Parity: This tool operates on the assumption that your environment allows for standard shell execution. In highly locked-down sandboxes, ensure the tool has sufficient permissions to run execSync commands.
+--- 🧠 Brain Doctor Diagnosis ---
+The error indicates a peer dependency conflict between react@18 and
+react-dom@17. The --legacy-peer-deps flag alone is insufficient here.
 
-📋 Best Practices
-Avoid "Exit" on First Try: If a command is complex (e.g., system configuration), the first AI response may be conservative. Use the Explain loop to refine the AI's understanding of the environment.
+◆ How would you like to proceed?
+│  ● Run: npm install --force
+│  ○ Run: npm install react-dom@18
+│  ○ ❌ Explain / Ask for different fix
+│  ○ Exit
+```
 
-Regex Resilience: For developers extending the tool, ensure that the generateDoctorPrompt service enforces code-block constraints. This guarantees the UI parser always finds the intended command targets.
+---
 
-© 2026 Xiaozhi (Steven) Xing. Powered by TypeScript & OpenRouter.
+## Recursive Explanation Mode
+
+When no proposed fix works, select **Explain / Ask for different fix**. The agent re-enters with the full error history:
+
+```bash
+# The next LLM call receives:
+# - Original command
+# - Original stderr
+# - All previously attempted fixes
+# - Their failure output
+```
+
+This forces the model into deeper reasoning rather than repeating the same suggestions.
+
+---
+
+## Important Considerations
+
+**Review before executing** — The agent may suggest privileged commands (`sudo`, `rm -rf`). Always read the proposed command in the menu before confirming.
+
+**Environment assumptions** — The tool assumes standard shell execution permissions. In sandboxed or restricted environments, `execSync` may fail regardless of the fix content.
+
+**Model quality matters** — Diagnostic depth varies by model. For complex system errors, switch to a stronger model:
+
+```bash
+brain config --model "openai/gpt-4o"
+brain doctor "your failing command"
+```
+
+---
+
+## Source
+
+```
+src/commands/doctor.ts         # Recursive diagnostic loop and UX
+src/services/doctorPrompts.ts  # Prompt construction with error context
+src/services/ai.ts             # LLM orchestration layer
+```
